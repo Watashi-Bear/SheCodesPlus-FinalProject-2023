@@ -1,4 +1,3 @@
-//current date and time
 function dateTime() {
   let now = new Date();
 
