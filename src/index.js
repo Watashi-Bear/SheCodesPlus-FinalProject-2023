@@ -1,7 +1,7 @@
 function formatDate(timestamp) {
   let date = new Date(timestamp);
-  let appDate = date.getDate();
   
+  let appDate = date.getDate();
   let hours = date.getHours();
   if (hours < 10) {
     hours = `0${hours}`;
@@ -42,6 +42,55 @@ function formatDate(timestamp) {
   return `${day} ${appDate} ${month} at ${hours}:${minutes}`;
 }
 
+function formatDay(timestamp){
+  let forecastDate = new Date(timestamp * 1000);
+  let forecastDay = forecastDate.getDay();
+  let forecastDays = [
+    "Sun", 
+    "Mon", 
+    "Tue", 
+    "Wed", 
+    "Thu", 
+    "Fri", 
+    "Sat"
+  ];
+
+  return forecastDays[forecastDay];
+}
+
+function displayForecast(response){
+  console.log(response);
+  let forecast = response.data.daily;
+  let forecastElement = document.querySelector("#forecast");
+
+  let forecastHTML = `<div class="row">`;
+  forecast.forEach(function(forecastDay, index) {
+  if (index < 6) {
+  forecastHTML = forecastHTML + 
+  `
+  <div class="col-2">
+    <div class="weather-forecast-date">${formatDay(forecastDay.time)}</div>
+    <img src="http://shecodes-assets.s3.amazonaws.com/api/weather/icons/${forecastDay.condition.icon}.png" alt="" width="40px">              
+    <div class="mb-3 weather-forecast-temperature">
+      <span class="weather-forecast-temperature-max">${Math.round(forecastDay.temperature.maximum)}°</span>|
+      <span class="weather-forecast-temperature-min">${Math.round(forecastDay.temperature.minimum)}°</span>
+    </div>
+  </div>
+  `;
+  }
+  });
+
+  forecastHTML = forecastHTML + `</div>`;
+  forecastElement.innerHTML = forecastHTML;
+}
+
+function getForecast(coordinates){
+  console.log(coordinates);
+  let apiKey = "3c48a60cea5at02a4bc6bf4c51bo5096";
+  let apiUrl = `https://api.shecodes.io/weather/v1/forecast?lon=${coordinates.longitude}&lat=${coordinates.latitude}&key=${apiKey}&units=metric`
+  axios.get(apiUrl).then(displayForecast);
+}
+
 function displayTemperature(response) {
   console.log(response.data);
   let temperatureElement = document.querySelector("#temperature");
@@ -63,7 +112,9 @@ function displayTemperature(response) {
   windElement.innerHTML = Math.round(response.data.wind.speed * 2.2369362912);
   dateElemnent.innerHTML = formatDate(response.data.time * 1000);
   iconElement.setAttribute("src", response.data.condition.icon_url);
-  iconElement.setAttribute("alt", response.data.condition.icon);
+  iconElement.setAttribute("alt", response.data.condition.description);
+
+  getForecast(response.data.coordinates);
 }
 
 function search(city) {
